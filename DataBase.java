@@ -126,6 +126,7 @@ public class DataBase extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(queryList, new String[]{});
 
         while (cursor.moveToNext()) {
+
             int id = cursor.getInt(cursor.getColumnIndex(MESKENLER_ID));
             String adi = cursor.getString(cursor.getColumnIndex(MESKENLER_ADI));
             int numara = cursor.getInt(cursor.getColumnIndex(MESKENLER_NUMARA));
@@ -231,7 +232,7 @@ public class DataBase extends SQLiteOpenHelper {
             contentValues.put(BORC_TUTAR, borc.getTutar());
             contentValues.put(BORC_YIL, borc.getYil());
             contentValues.put(BORC_AY, borc.getAy());
-            contentValues.put(BORC_DURUM, borc.getDurum());
+            contentValues.put(BORC_DURUM, "Y");
 
             long result = db.insert(TABLE_BORCLANDIRMA, null, contentValues);
             if (result == -1)
@@ -257,7 +258,7 @@ public class DataBase extends SQLiteOpenHelper {
         int ay = cal.get(Calendar.MONTH) + 1;
 
         String queryList = "select borc.Id as Id ,borc.tutar as tutar,mes.Ad_Soyad as Ad_Soyad,mes.kapiNo as kapiNo from TABLE_BORCLANDIRMA borc " +
-                ",TABLE_MESKENLER mes WHERE borc.meskenID = mes.Id and borc.yil=" + String.valueOf(yil) + " and borc.ay=" + String.valueOf(ay) + "";
+                ",TABLE_MESKENLER mes WHERE borc.durum = 'Y' and borc.meskenID = mes.Id and borc.yil=" + String.valueOf(yil) + " and borc.ay=" + String.valueOf(ay) + "";
 
         Cursor cursor = db.rawQuery(queryList, new String[]{});
         while (cursor.moveToNext()) {
@@ -275,6 +276,27 @@ public class DataBase extends SQLiteOpenHelper {
         return b;
 
     }
+
+    public int getAllGelenOdeme() {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+
+        int yil = cal.get(Calendar.YEAR);
+        int ay = cal.get(Calendar.MONTH) + 1;
+
+        String queryList = "select borc.Id as Id ,Sum(borc.tutar) as tutar,mes.Ad_Soyad as Ad_Soyad from TABLE_BORCLANDIRMA borc " +
+                ",TABLE_MESKENLER mes WHERE borc.durum = 'E' and borc.yil=" + String.valueOf(yil) + " and borc.ay=" + String.valueOf(ay) + "";
+
+        Cursor cursor = db.rawQuery(queryList, new String[]{});
+        int sum = cursor.getInt(cursor.getColumnIndex("tutar"));
+        cursor.close();
+        db.close();
+        return sum;
+
+    }
+
 
     public boolean updateCustomList(String Id) {
         SQLiteDatabase db = this.getWritableDatabase();
